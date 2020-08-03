@@ -1,0 +1,71 @@
+<div class="row">
+  <div class="col-md-1">
+    <button class="btn btn-secondary" (click)="onAddLanguage(10)">Thêm</button>
+  </div>
+  <div class="col-md-1">
+    <button class="btn btn-success" (click)="onSave()">Lưu</button>
+  </div>
+  <div class="col-md-2">
+    <button class="btn btn-success" (click)="onClear()">Xoá tất cả</button>
+  </div>
+  <div class="col-md-3" style="margin-top: 7px;">
+      <span style="font-weight: bold;">Ngày cập nhật:</span> {{ getDate() | date: 'dd/MM/yyyy' }}
+  </div>
+  <div class="col-md-4" style="margin-top: 7px;">
+      <span style="font-weight: bold;">Người cập nhật:</span> {{ user.email }}
+  </div>
+</div>
+<br />
+
+<div class="row">
+  <div class="col-md-12">
+    <table class="table">
+      <thead class="thead-light">
+        <tr>
+          <th scope="col" style="width: 10%;">Culture</th>
+          <th scope="col" style="width: 20%;">Key</th>
+          <th scope="col" style="width: 40%;">Value</th>
+      </thead>
+      <tbody (paste)="onPasteContent($event)" #tbody>
+        <tr
+          *ngFor="let obj of validObjs; index as i"
+        >
+          <td class="align-middle">
+            <input
+              type="text"
+              class="form-control"
+              [value]="obj.language.culture"
+              #culture
+              (input)="onInputChange(culture, i, 'culture')"
+              (click)="onClick(culture, i, 'culture')"
+              list="culture"
+            />
+          <datalist id="culture">
+              <option *ngFor="let culture of listCulture" [value]="culture">{{ culture }}</option>
+          </datalist>
+          </td>
+          <td class="align-middle">
+            <input
+              type="text"
+              class="form-control"
+              [value]="obj.language.key"
+              #key
+              (input)="onInputChange(key, i, 'key')"
+              (click)="onClick(key, i, 'key')"
+            />
+          </td>
+          <td class="align-middle">
+            <input
+              type="text"
+              class="form-control"
+              [value]="obj.language.value"
+              #value
+              (input)="onInputChange(value, i, 'value')"
+              (click)="onClick(value, i, 'value')"
+            />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

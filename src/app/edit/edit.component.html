@@ -1,0 +1,255 @@
+<div class="row">
+  <div class="col-md-2">
+    <button class="btn btn-success" (click)="onSave()">Lưu</button>
+  </div>
+</div>
+<br>
+
+<div class="row">
+  <div class="col-md-12">
+
+<table class="table table-bordered" #table1>
+  <thead class="thead-light">
+    <tr>
+      <th scope="col" style="width: 10%;">Culture</th>
+      <th scope="col" style="width: 20%;">Key</th>
+      <th scope="col" style="width: 40%;">Value</th>
+      <th scope="col" style="width: 5%;">Create Date</th>
+      <th scope="col" style="width: 10%;">User create</th>
+      <th scope="col" style="width: 5%;">Update Date</th>
+      <th scope="col" style="width: 10%;">User Update</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr
+      *ngFor="let language of languages; index as i"
+      (click)="onRowSelect(language, i)"
+      [ngStyle]="{'background-color':  isEditted(i) ? 'cyan' : 'transparent'}"
+      data-toggle="modal"
+      data-target="#languageFormModal"
+    >
+      <td class="align-middle">{{ language.culture }}</td>
+      <td class="align-middle">{{ language.key }}</td>
+      <td class="align-middle">{{ language.value }}</td>
+      <td class="align-middle">
+        {{ language.createdDate | date: "dd/MM/yyyy" }}
+      </td>
+      <td class="align-middle">{{ language.createdUser.email }}</td>
+      <td class="align-middle">
+        {{ language.updatedDate | date: "dd/MM/yyyy" }}
+      </td>
+      <td class="align-middle">{{ language.updatedUser.email }}</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+<nav aria-label="Page navigation">
+  <ul class="pagination">
+    <li class="page-item">
+      <a class="page-link" style="cursor: pointer;" aria-label="Previous" (click)="changePage(currentPage-1)">
+        <span aria-hidden="true">&laquo;</span>
+        <span class="sr-only">Previous</span>
+      </a>
+    </li>
+    <li class="page-item"><a class="page-link" style="cursor: pointer;" (click)="changePage(1)">1</a></li>
+    <li class="page-item"><a class="page-link" style="cursor: pointer;" (click)="changePage(2)">2</a></li>
+    <li class="page-item"><a class="page-link" style="cursor: pointer;" aria-disabled="true">...</a></li>
+    <li class="page-item"><a class="page-link" style="cursor: pointer;" (click)="changePage(10)">lp</a></li>
+    <li class="page-item">
+      <a class="page-link" style="cursor: pointer;" aria-label="Next" (click)="changePage(currentPage+1)">
+        <span aria-hidden="true">&raquo;</span>
+        <span class="sr-only">Next</span>
+      </a>
+    </li>
+    <li>
+      <a>&nbsp; Go to page: <input type="number" style="width: 50px;" #page></a>&nbsp;
+      <button class="btn btn-secondary" (click)="changePage(+page.value)" >Go</button>
+    </li>
+  </ul>
+</nav>
+
+<!-- Modal -->
+<div>
+  <div
+    class="modal fade"
+    id="languageFormModal"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="ModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog" role="document">
+      <div class="modal-content" style="width: 120%; margin-left: -10%;">
+        <div class="modal-header">
+          <h5 class="modal-title" id="ModalLabel">
+            Chỉnh sửa
+          </h5>
+          <button
+            type="button"
+            class="close"
+            data-dismiss="modal"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <!-- Form CRUD -->
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6">
+              <span style="font-weight: bold;">Ngày cập nhật:</span> {{ getDate() | date: 'dd/MM/yyyy' }}
+            </div>
+            <div class="col-md-6">
+              <span style="font-weight: bold;">Người cập nhật:</span> {{ user.email }}
+            </div>
+          </div>
+          <br>
+          <form #form="ngForm" (ngSubmit)="onSubmit()">
+            <input
+              type="hidden"
+              class="form-control"
+              id="id"
+              ngModel
+              name="id"
+              required
+              #id="ngModel"
+            />
+            <div class="form-group">
+              <label for="cultureForm" class="col-form-label font-weight-bold"
+                >Culture</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="cultureForm"
+                ngModel
+                name="culture"
+                required
+                #culture="ngModel"
+                [pattern]="regex"
+                (change)="onChange(culture)"
+                list="culture"
+                autocomplete="off"
+              />
+              <datalist id="culture">
+                <option *ngFor="let culture of listCulture" [value]="culture">{{ culture }}</option>
+              </datalist>
+              <div *ngIf="culture.errors">
+                <span
+                  class="block-help"
+                  *ngIf="culture.errors.required"
+                  style="color: red;"
+                  >Không được để trống trường này!</span
+                >
+                <span
+                class="block-help"
+                *ngIf="culture.errors.pattern"
+                style="color: red;"
+                >Không được dùng các ký tự đặc biệt</span
+              >
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="keyForm" class="col-form-label font-weight-bold"
+                >Key</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="keyForm"
+                ngModel
+                name="key"
+                required
+                #key="ngModel"
+                [pattern]="regex"
+              />
+              <div *ngIf="key.errors">
+                <span
+                  class="block-help"
+                  *ngIf="key.errors.required"
+                  style="color: red;"
+                  >Không được để trống trường này!</span
+                >
+                <span
+                class="block-help"
+                *ngIf="key.errors.pattern"
+                style="color: red;"
+                >Không được dùng các ký tự đặc biệt</span
+              >
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="valueForm" class="col-form-label font-weight-bold"
+                >Value</label
+              >
+              <textarea
+                class="form-control"
+                id="valueForm"
+                ngModel
+                name="value"
+                required
+                #value="ngModel"
+                [pattern]="regex"
+              ></textarea>
+              <div *ngIf="value.errors">
+                <span
+                  class="block-help"
+                  *ngIf="value.errors.required"
+                  style="color: red;"
+                  >Không được để trống trường này!</span
+                >
+                <span
+                class="block-help"
+                *ngIf="value.errors.pattern"
+                style="color: red;"
+                >Không được dùng các ký tự đặc biệt</span
+              >
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="row">
+                <div class="col-md-6">
+                  <button
+                    type="submit"
+                    class="btn btn-success mb-2 col-md-12"
+                    [disabled]="
+                      culture.invalid ||
+                      key.invalid ||
+                      value.invalid ||
+                      form.pristine
+                    "
+                  >
+                    Lưu
+                  </button>
+                </div>
+                <div class="col-md-6">
+                  <button
+                    type="button"
+                    class="btn btn-info mb-2 col-md-12"
+                    (click)="onReset(edittingLanguage)"
+                    [disabled]="
+                      culture.invalid ||
+                      key.invalid ||
+                      value.invalid ||
+                      form.pristine
+                    "
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            Thoát
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,64 @@
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <app-header></app-header>
+    </div>
+  </div>
+  <br>
+  <div class="row justify-content-center align-items-center" *ngIf="isLoading">
+    <app-loading></app-loading>
+  </div>
+  <div class="row justify-content-center align-items-center" *ngIf="!isLoading">
+    <div class="col-md-6">
+      <div class="col-md-12">
+        <h3 class="text-center text-info">Đăng nhập</h3>
+        <form #form="ngForm" (submit)="onSubmit(form)">
+          <div class="form-group">
+            <label for="email" class="text-info">Tên đăng nhập:</label><br />
+            <input
+              type="text"
+              ngModel
+              name="email"
+              id="email"
+              class="form-control"
+              email
+              required
+              #email="ngModel"
+            />
+            <span
+              class="block-help"
+              *ngIf="email.invalid && email.touched"
+              style="color: red;"
+              >Email không hợp lệ!</span
+            >
+          </div>
+          <div class="form-group">
+            <label for="password" class="text-info">Mật khẩu:</label><br />
+            <input
+              type="password"
+              ngModel
+              id="password"
+              name="password"
+              class="form-control"
+              required
+              #password="ngModel"
+            />
+            <span
+              class="block-help"
+              *ngIf="password.invalid && password.touched"
+              style="color: red;"
+              >Mật khẩu không được để trống!</span
+            >
+          </div>
+          <div class="form-group">
+            <button
+              type="submit"
+              class="btn btn-info btn-md"
+              [disabled]="form.invalid"
+            >Đăng nhập</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

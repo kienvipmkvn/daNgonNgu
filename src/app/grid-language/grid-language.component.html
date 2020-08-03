@@ -1,0 +1,36 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-12">
+      <app-header></app-header>
+    </div>
+  </div>
+  <br />
+  <div class="row">
+    <div class="col-sm-3">
+      <input type="text" class="form-control" placeholder="Nhập từ khoá..." />
+    </div>
+    <div class="col-md-3">
+      <button class="btn btn-primary">
+        Tìm kiếm
+      </button>
+    </div>
+    <div class="col-md-3"></div>
+    <div class="col-md-3">
+      <input
+        type="button"
+        class="btn btn-info"
+        [value]="isCreating ? 'Chỉnh sửa' : 'Tạo mới'"
+        style="float: right;"
+        (click)="onCreateClick()"
+      />
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <hr />
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
