@@ -2,8 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../service/auth.service';
 import { Subscription } from 'rxjs';
 
-declare var $: any;
-
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
@@ -21,7 +19,7 @@ export class HeaderComponent implements OnInit {
   ngOnInit() {
     this.userSub = this.authService.user.subscribe(user => {
       this.isAuthenticated = !!user;
-      if(user!=null) this.username = user.email;
+      if(user!=null) this.username = user.fullName;
     });
   }
 

@@ -3,8 +3,9 @@ import { NgForm } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 
-import { AuthService, AuthResponseData } from '../service/auth.service';
+import { AuthService, } from '../service/auth.service';
 import { ToastrService } from 'ngx-toastr';
+import { User } from '../models/user.model';
 
 @Component({
   selector: 'app-auth',
@@ -24,20 +25,18 @@ export class AuthComponent{
     const email = form.value.email;
     const password = form.value.password;
 
-    let authObs: Observable<AuthResponseData>;
+    let authObs: Observable<User>;
 
     this.isLoading = true;
       authObs = this.authService.login(email, password); 
 
     authObs.subscribe(
       resData => {
-        console.log(resData);
         this.isLoading = false;
         this.router.navigate(['quan-ly/chinh-sua']);
         this.toastr.success("Login success!", 'LOGIN');
       },
       errorMessage => {
-        console.log(errorMessage);
         this.error = errorMessage;
         this.isLoading = false;
         this.toastr.error(errorMessage, 'ERROR');

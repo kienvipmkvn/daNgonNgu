@@ -1,25 +1,28 @@
 import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { NgForm, Validators } from '@angular/forms';
-import { User } from '../models/user.model';
-import { LanguageService } from '../service/language.service';
+import { User } from '../../models/user.model';
+import { LanguageService } from '../../service/language.service';
 import { ToastrService } from 'ngx-toastr';
-import { AuthService } from '../service/auth.service';
-import { LanguageObject } from '../models/language.model';
+import { AuthService } from '../../service/auth.service';
+import { LanguageObject } from '../../models/language.model';
+import { environment } from 'src/environments/environment';
+import { Subject, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-edit',
   templateUrl: './edit.component.html',
   styleUrls: ['./edit.component.scss']
 })
-export class EditComponent {
+export class EditComponent implements OnDestroy {
   @ViewChild('form') form: NgForm;
+  subscription: Subscription = new Subscription();
   user: User;
   languages: LanguageObject[] = [];
   edittingLanguage: LanguageObject;
   edittingIndex: number;
-  edited = [];
+  edited: number[] = [];
   currentPage = 1;
-  regex = /^[ a-zA-Z_ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ]+$/
+  regex = environment.regex;
   listCulture: string[];
 
   constructor(
@@ -29,15 +32,19 @@ export class EditComponent {
   ) {
     this.languages = this.languageService.getLanguages();
     this.listCulture = this.languageService.getListCulture();
-    this.authService.user.subscribe((user) => {
+    this.subscription.add(this.authService.user.subscribe((user) => {
       this.user = user;
-    });
-    this.languageService.languagesSubject.subscribe((objs) => {
+    }));
+    this.subscription.add(this.languageService.languagesSubject.subscribe((objs) => {
       this.languages = objs;
-    });
-    this.languageService.listCultureSubject.subscribe((cultures)=>{
+    }));
+    this.subscription.add(this.languageService.listCultureSubject.subscribe((cultures)=>{
       this.listCulture = cultures;
-    })
+    }));
+  }
+
+  ngOnDestroy(){
+    this.subscription.unsubscribe();
   }
 
 
@@ -47,14 +54,21 @@ export class EditComponent {
     let culture = this.form.value['culture'];
     let key = this.form.value['key'];
     let value = this.form.value['value'];
-
+    
     let createUser = this.edittingLanguage.createdUser;
     let createDate = this.edittingLanguage.createdDate;
     let language = new LanguageObject(id, culture, key, value, createDate, createUser, new Date(), this.user);
+
+    if(this.languageService.checkIsConcident(language)){
+      this.toastr.error("Cặp culture và key đã tồn tại!", "Lỗi");
+      return;
+    }
+    
     this.languages[this.edittingIndex] = language;
     this.edited.push(this.edittingIndex);
     this.form.reset();
     this.onRowSelect(language, this.edittingIndex);
+    this.languageService.dirty = true;
   }
 
   isEditted(i){
@@ -80,6 +94,9 @@ export class EditComponent {
 
   onSave(){
     this.languageService.setLanguages(this.languages);
+    this.edited = [];
+    this.toastr.success("Lưu thành công");
+    this.languageService.dirty = false;
   }
 
   getDate(){

@@ -1,11 +1,6 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { LanguageService } from '../service/language.service';
-import { LanguageObject } from '../models/language.model';
-import { ToastrService } from 'ngx-toastr';
-import { User } from '../models/user.model';
-import { AuthService } from '../service/auth.service';
-import { NgForm } from '@angular/forms';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { LanguageService } from '../service/language.service';
 
 @Component({
   selector: 'app-grid-language',
@@ -14,27 +9,29 @@ import { Router } from '@angular/router';
 })
 export class GridLanguageComponent {
   isCreating = false;
-  constructor(
-    private router: Router
-  ) {
-    this.router.navigate(['quan-ly/chinh-sua'])
-  }
-  
+  constructor(private router: Router, private languageService: LanguageService) {}
+
   onCreateClick() {
-    //if(!confirm('Bạn chắc chắn muốn thoát? Các thay đổi có thể chưa được lưu')) return;
-    this.isCreating = !this.isCreating;
-    if (this.isCreating) this.router.navigate(['quan-ly/them-moi']);
-    else this.router.navigate(['quan-ly/chinh-sua']);
+    if (this.router.url === '/quan-ly/them-moi') {
+      this.isCreating = false;
+      this.router.navigate(['quan-ly/chinh-sua']);
+      this.languageService.dirty = false;
+    } else {
+      if(this.languageService.dirty) {
+        if(!confirm('Các chỉnh sửa có thể chưa được lưu!\nBạn có chắc chắn muốn thoát?')) return;
+      };
+      this.isCreating = true;
+      this.router.navigate(['quan-ly/them-moi']);
+    }
   }
-  
+
   //lưu lại hàng và dữ liệu đã sửa
   // oldElement: HTMLCollectionOf<HTMLTableCellElement>[] = []
   // oldSelectedLanguage: LanguageObject[] = [];
-  
-  
+
   onCreateClick1() {
     // let language = new LanguageObject(
-      //   '',
+    //   '',
     //   '',
     //   '',
     //   '',
@@ -58,7 +55,7 @@ export class GridLanguageComponent {
     // }, 10);
   }
 
-  onRowClick(element: HTMLElement, language, i) {
+  onRowClick() {
     // //click vào hàng đang chọn -> bỏ qua
     // if (
     //   element.innerHTML.includes('<input') ||

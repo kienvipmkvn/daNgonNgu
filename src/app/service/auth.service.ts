@@ -1,88 +1,75 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { throwError, BehaviorSubject } from 'rxjs';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { throwError, BehaviorSubject, Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { catchError, tap } from 'rxjs/operators';
 
 import { User } from '../models/user.model';
-
-export interface AuthResponseData {
-  kind: string;
-  idToken: string;
-  email: string;
-  refreshToken: string;
-  expiresIn: string;
-  localId: string;
-  registered?: boolean;
-}
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  url =
-    'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBljXs2ib-qxSRJrJYm3nmfOoAEkiQTqBw';
-
   user = new BehaviorSubject<User>(null);
   private tokenExpirationTimer: any;
 
-  constructor(private http: HttpClient, private router: Router) {}
-
+  constructor(private http: HttpClient, private router: Router) {
+  }
+  
   login(email: string, password: string) {
     return this.http
-      .post<AuthResponseData>(this.url, {
-        email: email,
-        password: password,
-        returnSecureToken: true,
-      })
-      .pipe(
-        catchError(this.handleError),
-        tap((resData) => {
-          this.handleAuthentication(
-            resData.email,
-            resData.localId,
-            resData.idToken,
-            +resData.expiresIn
-          );
-        })
+      .post<User>(environment.api.loginRoute,
+        {
+          UserName: email,
+          Password: password,
+          AppType: 0
+        },
+      ).pipe(
+        tap(resData => {
+          const user = new User(resData);
+          if (user.status === 1) {
+            this.handleAuthentication(user, 3600);
+          } else {
+            throw new Error(user.status + '');
+          }
+        }),
+        catchError(this.handleError)
       );
   }
 
   autoLogin() {
-    const userData: {
-      email: string;
-      id: string;
-      _token: string;
-      _tokenExpirationDate: string;
-    } = JSON.parse(localStorage.getItem('userData'));
-    if (!userData) {
+    const ctxUser= localStorage.getItem('userData');
+    if(!ctxUser){
       return;
     }
-
-    const loadedUser = new User(
-      userData.email,
-      userData.id,
-      userData._token,
-      new Date(userData._tokenExpirationDate)
-    );
-
-    if (loadedUser.token) {
-      this.user.next(loadedUser);
-      const expirationDuration =
-        new Date(userData._tokenExpirationDate).getTime() -
-        new Date().getTime();
+    const ctxUserData: User = JSON.parse(ctxUser);
+    if (!ctxUserData) {
+      return;
+    }
+    const actUser = localStorage.getItem('currentUserData');
+    if(!actUser){
+      return;
+    }
+    const actUserData: User = JSON.parse(actUser);
+    if (actUserData === null || actUserData === undefined) {
+      localStorage.setItem('currentUserData', JSON.stringify({ userId: ctxUserData.userId, companyId: ctxUserData.companyId }));
+    }
+    if (ctxUserData.accessToken) {
+      this.user.next(ctxUserData);
+      const expirationDuration = new Date(ctxUserData.tokenExpirationDate).getTime() - new Date().getTime();
       this.autoLogout(expirationDuration);
     }
   }
 
   logout() {
     this.user.next(null);
-    this.router.navigate(['/dang-nhap']);
     localStorage.removeItem('userData');
+    localStorage.removeItem('currentUserData');
     if (this.tokenExpirationTimer) {
       clearTimeout(this.tokenExpirationTimer);
     }
-    this.tokenExpirationTimer = null;
+    this.router.navigate(['/dang-nhap']);
   }
 
   autoLogout(expirationDuration: number) {
@@ -92,32 +79,35 @@ export class AuthService {
   }
 
   private handleAuthentication(
-    email: string,
-    userId: string,
-    token: string,
+    user: User,
     expiresIn: number
   ) {
-    const expirationDate = new Date(new Date().getTime() + expiresIn * 1000);
-    const user = new User(email, userId, token, expirationDate);
-    this.user.next(user);
-    this.autoLogout(expiresIn * 1000);
+    const currentTime = new Date().getTime();
+    user.tokenExpirationDate = new Date(currentTime + expiresIn * 1000 * 24);
     localStorage.setItem('userData', JSON.stringify(user));
+    localStorage.setItem('currentUserData', JSON.stringify({ userId: user.userId, companyId: user.companyId }));
+    this.user.next(user);
+    this.autoLogout(expiresIn * 1000 * 24);
   }
 
-  private handleError(errorRes: HttpErrorResponse) {
-    let errorMessage = 'An unknown error occurred!';
-    if (!errorRes.error || !errorRes.error.error) {
+  private handleError(errorResponse: HttpErrorResponse) {
+    let errorMessage = 'Có lỗi gì đó đã sảy ra, vui lòng không hoang mang!';
+    console.log(errorResponse);
+    if (!errorResponse.message) {
       return throwError(errorMessage);
     }
-    switch (errorRes.error.error.message) {
-      case 'EMAIL_EXISTS':
-        errorMessage = 'This email exists already';
+    switch (errorResponse.message) {
+      case '2':
+        errorMessage = 'Thông tin đăng nhập không đúng';
         break;
-      case 'EMAIL_NOT_FOUND':
-        errorMessage = 'This email does not exist.';
+      case '3':
+        errorMessage = 'Update Required: Chưa biết cái này là cái gì. A hi hi!';
         break;
-      case 'INVALID_PASSWORD':
-        errorMessage = 'This password is not correct.';
+      case '4':
+        errorMessage = 'Tài khoản của bạn đang bị khóa.';
+        break;
+      case '5':
+        errorMessage = 'Bạn đăng nhập trên thiết bị không phù hợp';
         break;
     }
     return throwError(errorMessage);

@@ -1,18 +1,18 @@
-<div class="row">
+<div class="row" >
   <div class="col-md-1">
-    <button class="btn btn-secondary" (click)="onAddLanguage(10)">Thêm</button>
+    <button class="btn btn-secondary" (click)="onAddLanguageClick()" [disabled]="isLoading">Thêm</button>
   </div>
   <div class="col-md-1">
-    <button class="btn btn-success" (click)="onSave()">Lưu</button>
+    <button class="btn btn-success" (click)="onSave()" [disabled]="isLoading">Lưu</button>
   </div>
   <div class="col-md-2">
-    <button class="btn btn-success" (click)="onClear()">Xoá tất cả</button>
+    <button class="btn btn-danger" (click)="onClear()" [disabled]="isLoading">Xoá tất cả</button>
   </div>
   <div class="col-md-3" style="margin-top: 7px;">
-      <span style="font-weight: bold;">Ngày cập nhật:</span> {{ getDate() | date: 'dd/MM/yyyy' }}
+      <span style="font-weight: bold;">Ngày tạo:</span> {{ getDate() | date: 'dd/MM/yyyy' }}
   </div>
   <div class="col-md-4" style="margin-top: 7px;">
-      <span style="font-weight: bold;">Người cập nhật:</span> {{ user.email }}
+      <span style="font-weight: bold;">Người tạo:</span> {{ user.fullName }}
   </div>
 </div>
 <br />
@@ -38,6 +38,7 @@
               #culture
               (input)="onInputChange(culture, i, 'culture')"
               (click)="onClick(culture, i, 'culture')"
+              (change)="onChange(culture)"
               list="culture"
             />
           <datalist id="culture">

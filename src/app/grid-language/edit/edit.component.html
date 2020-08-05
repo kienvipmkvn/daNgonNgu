@@ -34,11 +34,11 @@
       <td class="align-middle">
         {{ language.createdDate | date: "dd/MM/yyyy" }}
       </td>
-      <td class="align-middle">{{ language.createdUser.email }}</td>
+      <td class="align-middle">{{ language.createdUser.fullName }}</td>
       <td class="align-middle">
         {{ language.updatedDate | date: "dd/MM/yyyy" }}
       </td>
-      <td class="align-middle">{{ language.updatedUser.email }}</td>
+      <td class="align-middle">{{ language.updatedUser.fullName }}</td>
     </tr>
   </tbody>
 </table>
@@ -103,7 +103,7 @@
               <span style="font-weight: bold;">Ngày cập nhật:</span> {{ getDate() | date: 'dd/MM/yyyy' }}
             </div>
             <div class="col-md-6">
-              <span style="font-weight: bold;">Người cập nhật:</span> {{ user.email }}
+              <span style="font-weight: bold;">Người cập nhật:</span> {{ user.fullName }}
             </div>
           </div>
           <br>
