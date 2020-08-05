@@ -149,7 +149,6 @@ export class CreateNewComponent implements OnDestroy{
       inputElement.setAttribute('style', 'border: 1px solid rgb(206, 212, 218)')
       return true;
     }
-    return true;
   }
 
   //validate chỉ chứa số hoặc chữ hoặc -, _
@@ -163,7 +162,6 @@ export class CreateNewComponent implements OnDestroy{
       inputElement.setAttribute('style', 'border: 1px solid rgb(206, 212, 218)')
     }
     return r.test(value)
-    return true;
   }
 
   onAddLanguageClick(){
@@ -200,11 +198,12 @@ export class CreateNewComponent implements OnDestroy{
   onChange(inputElement){
     if(this.validateRequired(inputElement) && this.validateNomalTextOnly(inputElement)){
       let cultureName = inputElement.value.trim();
-      if(!this.listCulture.includes(cultureName)) this.languageService.addListCulture(cultureName);
+      setTimeout(() => {
+        if(!this.listCulture.includes(cultureName)) this.languageService.addListCulture(cultureName);
+      }, 0);
     }
   }
 
-  t = new Date().getTime()
   onPasteContent(e){
     this.setPointerProgress();
     console.log(e);
@@ -220,52 +219,45 @@ export class CreateNewComponent implements OnDestroy{
       if(this.validObjs.length>0) this.validObjs = [];
       this.onAddLanguage(rows.length);
     }
-    console.log(new Date().getTime() -this.t);
-    this.t = new Date().getTime();
+    console.log(3);
     
     //paste
     setTimeout(() => {
       console.log(4);
-      console.log(new Date().getTime() -this.t);
-      this.t = new Date().getTime();
-      console.log(new Date().getTime() -this.t);
-      this.t = new Date().getTime();
       let inputElements = this.tbody.nativeElement.getElementsByTagName('input');
       for (const row of rows) {
         let cols = row.split('\t');
         
         console.log(5);
-        console.log(new Date().getTime() -this.t);
-        this.t = new Date().getTime();
         for (const col of cols) {
           
           console.log(6);
-          console.log(new Date().getTime() -this.t);
-          this.t = new Date().getTime();
+          setTimeout(() => {
             inputElements[index].value = col;
             this.onInputChange(inputElements[index], Math.floor(index/3), index%3==0?'culture': index%3==1?'key':'value');
             inputElementsTemp.push(inputElements[index])
             index++;
 
             //lưu lại cultures
+            setTimeout(() => {
               console.log(7);
-              console.log(new Date().getTime() -this.t);
-              this.t = new Date().getTime();
               if(inputElementsTempIndex%3==0) 
                 this.onChange(inputElementsTemp[inputElementsTempIndex]);
                 inputElementsTempIndex++;
                 this.setPointerDefault();
+            }, 0);
+          }, 0);
         }
         
       }
       
       //gán giá trị cho ô đầu tiên
+      setTimeout(() => {
         console.log(8);
-        console.log(new Date().getTime() -this.t);
-        this.t = new Date().getTime();
         let cols = rows[0].split('\t');
         e.target.value = cols[0];
         this.onInputChange(e.target, 0, 'culture');
+      }, 0);
     }, 0);
   }
 
