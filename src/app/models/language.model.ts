@@ -2,13 +2,15 @@ import { User } from './user.model';
 
 export class LanguageObject {
   constructor(
-    public id: string,
-    public culture: string,
-    public key: string,
+    public languageTypeId: number,
+    public name: string,
+    public appID: number,
     public value: string,
-    public createdDate: Date,
-    public createdUser: User,
-    public updatedDate: Date,
-    public updatedUser: User,
+    public created: Date,
+    public createdUser: string,
+    public updated: Date,
+    public updatedUser: string,
+    public isActive: boolean = true,
+    public version: number = 1
   ) {}
 }

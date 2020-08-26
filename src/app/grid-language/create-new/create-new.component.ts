@@ -7,61 +7,54 @@ import { AuthService } from '../../service/auth.service';
 import { LanguageObject } from '../../models/language.model';
 import { environment } from 'src/environments/environment';
 import { Subscription } from 'rxjs';
-
-declare var $: any;
+import { LanguageStorageService } from 'src/app/service/language-storage.service';
+import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 
 @Component({
   selector: 'app-create-new',
   templateUrl: './create-new.component.html',
   styleUrls: ['./create-new.component.scss']
 })
-export class CreateNewComponent implements OnDestroy{
-  isLoading = false;
+export class CreateNewComponent implements OnInit{
   subscription: Subscription = new Subscription();
   regex = environment.regex;
   @ViewChild('tbody') tbody: ElementRef;
   user: User;
-  listCulture: string[];
-  validObjs :{
-    language: LanguageObject,
-    valid: boolean
+  //listCulture: {languageTypeId: number, codeName: string}[];
+  //listAppType: {appID: number, appName: string}[];
+  
+  errorMessageType : string[] = environment.errorList.slice();
+
+  languages: {
+    languageTypeId: number,
+    name: string,
+    appID: number,
+    value: string
   }[] = [];
+  valid: boolean[] = [];
 
   constructor(
-    private languageService: LanguageService,
+    public languageService: LanguageService,
     private toastr: ToastrService,
     private authService: AuthService,
+    private languageStorage: LanguageStorageService
   ) {
-    this.subscription.add(this.authService.user.subscribe((user) => {
+    
+  }
+
+  ngOnInit(){
+    this.authService.user.subscribe((user) => {
       this.user = user;
-    }));
+    });
     
     if(this.languageService.creatingLanguages.length > 0) {
-      this.setPointerProgress();
-      let length = this.languageService.creatingLanguages.length;
-      this.languageService.creatingLanguages.forEach((createLang, index)=> {
-        setTimeout(() => {
-          this.validObjs.push(createLang);
-          if(index == length-1) this.setPointerDefault();
-        }, 0);
-      })
+      this.languages = this.languageService.creatingLanguages;
     }
-      
     else this.onAddLanguage(10);
-    this.listCulture = this.languageService.listCulture;
-    this.subscription.add(this.languageService.listCultureSubject.subscribe(cultures=>{
-      this.listCulture = cultures;
-    }))
-
+    
     setTimeout(() => {
       this.afterViewInit()
     }, 0);
-  }
-
-  ngOnDestroy(){
-    this.languageService.setCreatingLanguges(this.validObjs);
-    this.subscription.unsubscribe();
-    this.setPointerDefault();
   }
 
   afterViewInit(){
@@ -84,69 +77,110 @@ export class CreateNewComponent implements OnDestroy{
 
   onAddLanguage(num){
     for (let i = 0; i < num; i++) {
-      let language = new LanguageObject('','','','',new Date(), this.user, new Date(),this.user);
-      this.validObjs.push({
-        language: language,
-        valid: false
-      });
+      this.languages.push({
+        languageTypeId: 1,
+        name: '',
+        appID: 0,
+        value: ''
+      })
+      this.valid.push(false);
     }
-
   }
 
-  onInputChange(inputElement:HTMLInputElement, i, cs: string){
+  onInputChange(inputElement, i, cs: string){
     //lưu lại tất cả thay đổi
     switch (cs) {
       case 'culture':
-        this.validObjs[i].language.culture = inputElement.value;
+        this.languages[i].languageTypeId = this.languageService.listCulture[+inputElement.selectedIndex].languageTypeId;
         break;
-        
-      case 'key':
-        this.validObjs[i].language.key = inputElement.value;
+
+      case 'name':
+        this.languages[i].name = inputElement.value;
+        break;
+
+      case 'appID':
+        this.languages[i].appID = this.languageService.listAppType[+inputElement.selectedIndex].appID;
         break;
 
       case 'value':
-        this.validObjs[i].language.value = inputElement.value;
+        this.languages[i].value = inputElement.value;
         break;
 
       default:
         break;
     }
 
-    //validate lại từng thuộc tính của language
-    if(this.validateRequired(inputElement) && this.validateNomalTextOnly(inputElement)){
-      let languageUsing = this.validObjs[i].language;
-      let r = new RegExp(this.regex);
-
-      if(languageUsing.culture==null || languageUsing.culture=='' ||
-        languageUsing.key==null || languageUsing.key==''||
-        languageUsing.value==null || languageUsing.value=='') {
-          this.validObjs[i].valid = false;
+    if(cs=="culture" || cs=="appID"){
+      let languageUsing = this.languages[i];
+      if(this.checkIsConcidentClient(languageUsing, i)) this.valid[i] = false;
+      else{
+        if(languageUsing.name!='' && languageUsing.value!=''){
+          let r = new RegExp(this.regex);
+          if(r.test(languageUsing.name) && r.test(languageUsing.value)) this.valid[i] = true;
+        }
       }
-
-      else if(!r.test(languageUsing.culture) || !r.test(languageUsing.key) || !r.test(languageUsing.value)){
-        this.validObjs[i].valid = false;
-      }
-
-      else this.validObjs[i].valid = true;
     }
-    else this.validObjs[i].valid = false;
+    //validate lại từng thuộc tính của language
+    if(cs=='name' || cs=='value'){
+      if(this.validateRequired(inputElement) && this.validateNomalTextOnly(inputElement)){
+        let languageUsing = this.languages[i];
+        let r = new RegExp(this.regex);
+
+        if(languageUsing.languageTypeId==null || languageUsing.appID==null ||
+          languageUsing.name==null || languageUsing.name==''||
+          languageUsing.value==null || languageUsing.value=='') {
+            this.valid[i] = false;
+        }
+
+        else if(!r.test(languageUsing.name) || !r.test(languageUsing.value)){
+          this.valid[i] = false;
+        }
+
+        else if(this.checkIsConcidentClient(languageUsing, i)){
+          this.valid[i] = false;
+        } 
+
+        else{
+          this.valid[i] = true;
+        } 
+      }
+      else{
+        this.valid[i] = false;
+      } 
+    }
   }
 
   onClick(inputElement, i, cs){
-    if(this.isLoading) return;
     this.validateRequired(inputElement);
     this.onInputChange(inputElement, i, cs);
-    
   }
 
+  checkIsConcidentClient(language:{
+      languageTypeId: number,
+      name: string,
+      appID: number,
+      value: string
+    }, index){
+    for (let i = 0; i < this.languages.length; i++) {
+      const lang = this.languages[i];
+      if(i!=index && lang.name!=''){
+        if(lang.appID==language.appID && lang.languageTypeId==language.languageTypeId && lang.name==language.name){
+          return true;
+        }
+      }
+    }
+    return false;
+  }
   
-  validateRequired(inputElement){
+  validateRequired(inputElement: HTMLInputElement){
     if(inputElement.value==null || inputElement.value=='') {
-      inputElement.setAttribute('style', 'border: 1px solid red')
+      inputElement.setAttribute('style', 'border: 1px solid red');
+      inputElement.setAttribute('title', 'Không được để trống trường này!')
       return false;
     }
     else{
-      inputElement.setAttribute('style', 'border: 1px solid rgb(206, 212, 218)')
+      inputElement.setAttribute('style', 'border: 1px solid rgb(206, 212, 218)');
+      inputElement.setAttribute('title', '')
       return true;
     }
   }
@@ -156,109 +190,122 @@ export class CreateNewComponent implements OnDestroy{
     let value: string = inputElement.value;
     let r = new RegExp(this.regex);
     if(!r.test(value)) {
-      inputElement.setAttribute('style', 'border: 1px solid red')
+      inputElement.setAttribute('style', 'border: 1px solid red');
+      inputElement.setAttribute('title', 'Không được chứa ký tự đặc biệt!')
     }
     else{
-      inputElement.setAttribute('style', 'border: 1px solid rgb(206, 212, 218)')
+      inputElement.setAttribute('style', 'border: 1px solid rgb(206, 212, 218)');
+      inputElement.setAttribute('title', '')
     }
     return r.test(value)
   }
 
   onAddLanguageClick(){
-    if(this.isLoading) return;
     this.onAddLanguage(10);
   }
 
   onSave(){
-    if(this.isLoading) return;
     //lưu lại các languge valid
-    let validLanguages: LanguageObject[] = [];
+    let validLanguages = [];
 
-    //lưu lại các obj không valid
-    let tempValidObjs = [];
-    this.validObjs.forEach((validObj, i) => {
-      if(validObj.valid){
-        validLanguages.push(validObj.language);
+    //lưu lại các language không valid
+    let invalidLanguages = [];
+    this.languages.forEach((language, i) => {
+      if(this.valid[i]){
+        validLanguages.push(language);
       }
       else{
-        tempValidObjs.push(validObj);
+        invalidLanguages.push(language);
       }
     });
 
-    this.validObjs = tempValidObjs;
-    this.languageService.addLanguageObjs(validLanguages);
+    console.log(validLanguages);
+    console.log(this.languages);
+    this.languages = invalidLanguages;
+    this.valid = [];
+    for (let i = 0; i < invalidLanguages.length; i++) {
+      this.valid.push(false);
+    }
+    for (const validLanguage of validLanguages) {
+        //check trùng
+        console.log(validLanguage);
+        this.languageStorage.createLanguage({
+          languageTypeId: validLanguage.languageTypeId,
+          name: validLanguage.name,
+          appID: validLanguage.appID,
+          value: validLanguage.value,
+          createdUser: this.user.userId
+        }).subscribe((response:any)=>{
+          if(response.data.status == true){
+            this.toastr.success("Thêm mới thành công")
+          }
+          else{
+            let errorMsg = "Có lỗi xảy ra!";
+            this.languages.unshift(validLanguage);
+            this.valid.unshift(false);
+            const error:string = response.data.value.Message;
+            if(error.includes(this.errorMessageType[0])){
+              errorMsg = "Key đã tồn tại!"
+            }
+            this.toastr.error(`Thêm mới thất bại!\nLỗi: ${errorMsg}`);
+          }
+        }, error=>{
+          console.log(error);
+          this.languages.unshift(validLanguage);
+          this.valid.unshift(true);
+          this.toastr.error("Có lỗi xảy ra, không thể tạo mới!", "Lỗi")
+        })
+    }
   }
 
   onClear(){
-    if(this.isLoading) return;
-    this.validObjs.splice(0, this.validObjs.length);
-    this.onAddLanguage(10);
+    if(confirm("Bạn muốn huỷ bỏ tất cả thay đổi?")){
+      this.languages.splice(0, this.languages.length);
+      this.onAddLanguage(10);
+    }
   }
 
   onChange(inputElement){
     if(this.validateRequired(inputElement) && this.validateNomalTextOnly(inputElement)){
-      let cultureName = inputElement.value.trim();
-      setTimeout(() => {
-        if(!this.listCulture.includes(cultureName)) this.languageService.addListCulture(cultureName);
-      }, 0);
+      //let cultureName = inputElement.value.trim();
+      // setTimeout(() => {
+      //   if(!this.listCulture.includes(cultureName)) this.languageService.addListCulture(cultureName);
+      // }, 0);
     }
   }
 
+
   onPasteContent(e){
-    this.setPointerProgress();
-    console.log(e);
-    let inputElementsTemp = [];
-    let inputElementsTempIndex = 0;
-    console.log(1);
-    let text: string = e.clipboardData.getData('text');
+    // this.setPointerProgress();
+    // let text: string = e.clipboardData.getData('text');
 
-    let rows = text.split('\n');
-    console.log(2);
-    let index = 0;
-    if(rows.length>this.validObjs.length){
-      if(this.validObjs.length>0) this.validObjs = [];
-      this.onAddLanguage(rows.length);
-    }
-    console.log(3);
-    
-    //paste
-    setTimeout(() => {
-      console.log(4);
-      let inputElements = this.tbody.nativeElement.getElementsByTagName('input');
-      for (const row of rows) {
-        let cols = row.split('\t');
-        
-        console.log(5);
-        for (const col of cols) {
-          
-          console.log(6);
-          setTimeout(() => {
-            inputElements[index].value = col;
-            this.onInputChange(inputElements[index], Math.floor(index/3), index%3==0?'culture': index%3==1?'key':'value');
-            inputElementsTemp.push(inputElements[index])
-            index++;
-
-            //lưu lại cultures
-            setTimeout(() => {
-              console.log(7);
-              if(inputElementsTempIndex%3==0) 
-                this.onChange(inputElementsTemp[inputElementsTempIndex]);
-                inputElementsTempIndex++;
-                this.setPointerDefault();
-            }, 0);
-          }, 0);
-        }
-        
-      }
+    // let rows = text.split('\n');
+    // let index = 0;
+    // if(rows.length>this.languages.length){
+    //   if(this.languages.length>0) this.languages = [];
+    //   this.onAddLanguage(rows.length);
+    // }
+    // setTimeout(() => {
       
-      //gán giá trị cho ô đầu tiên
-      setTimeout(() => {
-        console.log(8);
-        let cols = rows[0].split('\t');
-        e.target.value = cols[0];
-        this.onInputChange(e.target, 0, 'culture');
-      }, 0);
-    }, 0);
+    //   let inputElements = this.tbody.nativeElement.getElementsByTagName('input');
+    //   for (const row of rows) {
+    //     let cols = row.split('\t');
+    //     for (const col of cols) {
+    //         inputElements[index].value = col;
+    //         this.onInputChange(inputElements[index], Math.floor(index/3), index%3==0?'culture': index%3==1?'key':'value');
+    //         index++;
+    //       }
+    //     this.setPointerDefault();
+    //   }
+      
+    //   //gán giá trị cho ô đầu tiên
+    //   setTimeout(() => {
+    //     console.log(8);
+    //     let cols = rows[0].split('\t');
+    //     e.target.value = cols[0];
+    //     this.onInputChange(e.target, 0, 'culture');
+    //   }, 0);
+    // }, 0);
   }
 
   getDate(){
@@ -267,11 +314,9 @@ export class CreateNewComponent implements OnDestroy{
 
   setPointerProgress(){
     document.body.style.cursor = 'progress';
-    this.isLoading = true;
   }
   
   setPointerDefault(){
     document.body.style.cursor = 'default ';
-    this.isLoading = false;
   }
 }

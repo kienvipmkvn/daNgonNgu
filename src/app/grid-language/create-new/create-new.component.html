@@ -1,18 +1,18 @@
 <div class="row" >
   <div class="col-md-1">
-    <button class="btn btn-secondary" (click)="onAddLanguageClick()" [disabled]="isLoading">Thêm</button>
+    <button class="btn btn-secondary" (click)="onAddLanguageClick()">Thêm</button>
   </div>
   <div class="col-md-1">
-    <button class="btn btn-success" (click)="onSave()" [disabled]="isLoading">Lưu</button>
+    <button class="btn btn-success" (click)="onSave()">Lưu</button>
   </div>
   <div class="col-md-2">
-    <button class="btn btn-danger" (click)="onClear()" [disabled]="isLoading">Xoá tất cả</button>
+    <button class="btn btn-danger" (click)="onClear()" >Xoá tất cả</button>
   </div>
   <div class="col-md-3" style="margin-top: 7px;">
       <span style="font-weight: bold;">Ngày tạo:</span> {{ getDate() | date: 'dd/MM/yyyy' }}
   </div>
   <div class="col-md-4" style="margin-top: 7px;">
-      <span style="font-weight: bold;">Người tạo:</span> {{ user.fullName }}
+      <span style="font-weight: bold;">Người tạo:</span> {{ user.userName }}
   </div>
 </div>
 <br />
@@ -22,44 +22,51 @@
     <table class="table">
       <thead class="thead-light">
         <tr>
-          <th scope="col" style="width: 10%;">Culture</th>
-          <th scope="col" style="width: 20%;">Key</th>
-          <th scope="col" style="width: 40%;">Value</th>
+          <th scope="col" style="width: 7%;">Culture</th>
+          <th scope="col" style="width: 25%;">Name</th>
+          <th scope="col" style="width: 13%;">AppID</th>
+          <th scope="col" style="width: 55%;">Value</th>
       </thead>
       <tbody (paste)="onPasteContent($event)" #tbody>
         <tr
-          *ngFor="let obj of validObjs; index as i"
+          *ngFor="let language of languages; index as i"
+          #tr (change)="checkIsConcidentClient(tr, i)"
         >
-          <td class="align-middle">
-            <input
+          <td class="align-middle" >
+            <select
               type="text"
               class="form-control"
-              [value]="obj.language.culture"
               #culture
-              (input)="onInputChange(culture, i, 'culture')"
-              (click)="onClick(culture, i, 'culture')"
-              (change)="onChange(culture)"
-              list="culture"
-            />
-          <datalist id="culture">
-              <option *ngFor="let culture of listCulture" [value]="culture">{{ culture }}</option>
-          </datalist>
+              (change)="onInputChange(culture, i, 'culture')"
+            >
+              <option *ngFor="let culture of languageService.listCulture" [value]="culture.languageTypeId">{{ culture.codeName }}</option>
+            </select>
           </td>
           <td class="align-middle">
             <input
               type="text"
               class="form-control"
-              [value]="obj.language.key"
-              #key
-              (input)="onInputChange(key, i, 'key')"
-              (click)="onClick(key, i, 'key')"
+              [value]="language.name"
+              #name
+              (input)="onInputChange(name, i, 'name')"
+              (click)="onClick(name, i, 'name')"
             />
+          </td>
+          <td class="align-middle">
+            <select
+              type="text"
+              class="form-control"
+              #appID
+              (change)="onInputChange(appID, i, 'appID')"
+            >
+            <option *ngFor="let appName of languageService.listAppType" [value]="appName.appID">{{ appName.appName }}</option>
+            </select>
           </td>
           <td class="align-middle">
             <input
               type="text"
               class="form-control"
-              [value]="obj.language.value"
+              [value]="language.value"
               #value
               (input)="onInputChange(value, i, 'value')"
               (click)="onClick(value, i, 'value')"

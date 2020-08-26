@@ -1,6 +1,26 @@
 <div class="row">
+  <div class="col-sm-2">
+    <input type="text" class="form-control" placeholder="Nhập từ khoá..." #input/>
+  </div>
+  <div class="col-md-3">
+    <select class="form-control" name="languageTypeId" id="languageTypeId" (change)="onCultureChange(culture)" #culture>
+      <option value="" >Lọc theo culture</option>
+      <option *ngFor="let culture of languageService.listCulture">{{ culture.codeName }}</option>
+    </select>
+  </div>
+  <div class="col-md-3">
+    <select class="form-control" name="appId" id="appId"  (change)="onAppTypeChange(appType)" #appType>
+      <option value="">Lọc theo app type</option>
+      <option *ngFor="let appType of languageService.listAppType">{{ appType.appName }}</option>
+    </select>
+  </div>
+  <div class="col-sm-2">
+    <button class="btn btn-info" (click)="onSortChange()" >{{orderAsc? "Sắp xếp asc":"Sắp xếp desc"}}</button>
+  </div>
   <div class="col-md-2">
-    <button class="btn btn-success" (click)="onSave()">Lưu</button>
+    <button class="btn btn-primary" (click)="onSearchClick(input)">
+      Tìm kiếm
+    </button>
   </div>
 </div>
 <br>
@@ -12,8 +32,9 @@
   <thead class="thead-light">
     <tr>
       <th scope="col" style="width: 10%;">Culture</th>
-      <th scope="col" style="width: 20%;">Key</th>
-      <th scope="col" style="width: 40%;">Value</th>
+      <th scope="col" style="width: 20%;">Name</th>
+      <th scope="col" style="width: 10%;">AppID</th>
+      <th scope="col" style="width: 30%;">Value</th>
       <th scope="col" style="width: 5%;">Create Date</th>
       <th scope="col" style="width: 10%;">User create</th>
       <th scope="col" style="width: 5%;">Update Date</th>
@@ -24,40 +45,44 @@
     <tr
       *ngFor="let language of languages; index as i"
       (click)="onRowSelect(language, i)"
-      [ngStyle]="{'background-color':  isEditted(i) ? 'cyan' : 'transparent'}"
       data-toggle="modal"
       data-target="#languageFormModal"
     >
-      <td class="align-middle">{{ language.culture }}</td>
-      <td class="align-middle">{{ language.key }}</td>
+      <td class="align-middle">{{ getCulture(language.languageTypeId) }}</td>
+      <td class="align-middle">{{ language.name }}</td>
+      <td class="align-middle">{{ getAppType(language.appID) }}</td>
       <td class="align-middle">{{ language.value }}</td>
       <td class="align-middle">
-        {{ language.createdDate | date: "dd/MM/yyyy" }}
+        {{ language.created | date: "dd/MM/yyyy" }}
       </td>
-      <td class="align-middle">{{ language.createdUser.fullName }}</td>
+      <td class="align-middle">{{ language.createdUser | usernamePipe | async }}</td>
       <td class="align-middle">
-        {{ language.updatedDate | date: "dd/MM/yyyy" }}
+        {{ language.updated | date: "dd/MM/yyyy" }}
       </td>
-      <td class="align-middle">{{ language.updatedUser.fullName }}</td>
+      <td class="align-middle" *ngIf="language.updatedUser != null">{{ language.updatedUser | usernamePipe | async }}</td>
+      <td class="align-middle" *ngIf="language.updatedUser == null">NULL</td>
     </tr>
   </tbody>
 </table>
 </div>
 </div>
 
-<nav aria-label="Page navigation">
-  <ul class="pagination">
-    <li class="page-item">
-      <a class="page-link" style="cursor: pointer;" aria-label="Previous" (click)="changePage(currentPage-1)">
+
+<!-- phan trang -->
+<nav aria-label="Page navigation" *ngIf="languageService.totalItems>0">
+  <ul class="pagination" *ngIf="languageService.totalPages>2">
+    <li class="page-item" [ngClass]="{'disabled': currentPage==1}">
+      <a class="page-link" style="cursor: pointer;" aria-label="Previous" (click)="changePage(currentPage-1)" >
         <span aria-hidden="true">&laquo;</span>
         <span class="sr-only">Previous</span>
       </a>
     </li>
-    <li class="page-item"><a class="page-link" style="cursor: pointer;" (click)="changePage(1)">1</a></li>
-    <li class="page-item"><a class="page-link" style="cursor: pointer;" (click)="changePage(2)">2</a></li>
-    <li class="page-item"><a class="page-link" style="cursor: pointer;" aria-disabled="true">...</a></li>
-    <li class="page-item"><a class="page-link" style="cursor: pointer;" (click)="changePage(10)">lp</a></li>
-    <li class="page-item">
+    <li class="page-item" [ngClass]="{'active': currentPage==1}"><a class="page-link" style="cursor: pointer;" (click)="changePage(currentPage>=languageService.totalPages-1?1:currentPage-1>0?currentPage-1:1)">{{currentPage>=languageService.totalPages-1?1:currentPage-1>0?currentPage-1:1}}<span class="sr-only">(current)</span></a></li>
+    <li *ngIf="currentPage!=languageService.totalPages-1 && currentPage<=languageService.totalPages-1" class="page-item" [ngClass]="{'active': currentPage!=1}"><a class="page-link" style="cursor: pointer;" (click)="changePage(currentPage==1?2:currentPage)">{{currentPage==1?2:currentPage}}</a></li>
+    <li *ngIf="languageService.totalPages>3" class="page-item"><a class="page-link" style="cursor: pointer;" aria-disabled="true">...</a></li>
+    <li *ngIf="currentPage>=languageService.totalPages-1" [ngClass]="{'active': currentPage==languageService.totalPages-1}" class="page-item"><a class="page-link" style="cursor: pointer;"(click)="changePage(languageService.totalPages-1)">{{languageService.totalPages-1}}</a></li>
+    <li *ngIf="languageService.totalPages>2" [ngClass]="{'active': currentPage==languageService.totalPages}" class="page-item"><a class="page-link" style="cursor: pointer;" (click)="changePage(languageService.totalPages)">{{languageService.totalPages}}</a></li>
+    <li class="page-item" [ngClass]="{'disabled': currentPage==languageService.totalPages}">
       <a class="page-link" style="cursor: pointer;" aria-label="Next" (click)="changePage(currentPage+1)">
         <span aria-hidden="true">&raquo;</span>
         <span class="sr-only">Next</span>
@@ -68,10 +93,36 @@
       <button class="btn btn-secondary" (click)="changePage(+page.value)" >Go</button>
     </li>
   </ul>
+  <ul class="pagination" *ngIf="languageService.totalPages<=2">
+    <li class="page-item" [ngClass]="{'disabled': currentPage==1}">
+      <a class="page-link" style="cursor: pointer;" aria-label="Previous" (click)="changePage(currentPage-1)" >
+        <span aria-hidden="true">&laquo;</span>
+        <span class="sr-only">Previous</span>
+      </a>
+    </li>
+    <li class="page-item" [ngClass]="{'active': currentPage==1}"><a class="page-link" style="cursor: pointer;" (click)="changePage(currentPage>=languageService.totalPages-1?1:currentPage-1>0?currentPage-1:1)">{{currentPage>=languageService.totalPages-1?1:currentPage-1>0?currentPage-1:1}}<span class="sr-only">(current)</span></a></li>
+    <li *ngIf="languageService.totalPages==2" class="page-item" [ngClass]="{'active': currentPage!=1}"><a class="page-link" style="cursor: pointer;" (click)="changePage(currentPage==1?2:currentPage)">{{currentPage==1?2:currentPage}}</a></li>
+    <li class="page-item" [ngClass]="{'disabled': currentPage==languageService.totalPages}">
+      <a class="page-link" style="cursor: pointer;" aria-label="Next" (click)="changePage(currentPage+1)">
+        <span aria-hidden="true">&raquo;</span>
+        <span class="sr-only">Next</span>
+      </a>
+    </li>
+    <li>
+      <a>&nbsp; Đi đến trang: <input type="number" style="width: 50px;" #page></a>&nbsp;
+      <button class="btn btn-secondary" (click)="changePage(+page.value)" >Go</button>
+    </li>
+  </ul>
 </nav>
+<div *ngIf="languageService.totalItems>0">Tổng số: {{languageService.totalItems}}</div>
+
+<div *ngIf="languageService.totalItems==0 && !languageStorage.isLoading">Không có dữ liệu để hiển thị!</div>
+<div *ngIf="languageStorage.isLoading">
+  <app-loading></app-loading>
+</div>
 
 <!-- Modal -->
-<div>
+<!-- <div>
   <div
     class="modal fade"
     id="languageFormModal"
@@ -96,26 +147,17 @@
           </button>
         </div>
 
-        <!-- Form CRUD -->
         <div class="modal-body">
           <div class="row">
             <div class="col-md-6">
               <span style="font-weight: bold;">Ngày cập nhật:</span> {{ getDate() | date: 'dd/MM/yyyy' }}
             </div>
             <div class="col-md-6">
-              <span style="font-weight: bold;">Người cập nhật:</span> {{ user.fullName }}
+              <span style="font-weight: bold;">Người cập nhật:</span> {{ user.userName!=null ? user.userName : '' }}
             </div>
           </div>
           <br>
           <form #form="ngForm" (ngSubmit)="onSubmit()">
-            <input
-              type="hidden"
-              class="form-control"
-              id="id"
-              ngModel
-              name="id"
-              #id="ngModel"
-            />
             <div class="form-group">
               <label for="cultureForm" class="col-form-label font-weight-bold"
                 >Culture</label
@@ -152,29 +194,58 @@
               </div>
             </div>
             <div class="form-group">
-              <label for="keyForm" class="col-form-label font-weight-bold"
-                >Key</label
+              <label for="nameForm" class="col-form-label font-weight-bold"
+                >Name</label
               >
               <input
                 type="text"
                 class="form-control"
-                id="keyForm"
+                id="nameForm"
                 ngModel
-                name="key"
+                name="name"
                 required
-                #key="ngModel"
+                #name="ngModel"
                 [pattern]="regex"
               />
-              <div *ngIf="key.errors">
+              <div *ngIf="name.errors">
                 <span
                   class="block-help"
-                  *ngIf="key.errors.required"
+                  *ngIf="name.errors.required"
                   style="color: red;"
                   >Không được để trống trường này!</span
                 >
                 <span
                 class="block-help"
-                *ngIf="key.errors.pattern"
+                *ngIf="name.errors.pattern"
+                style="color: red;"
+                >Không được dùng các ký tự đặc biệt</span
+              >
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="appForm" class="col-form-label font-weight-bold"
+                >AppID</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="appForm"
+                ngModel
+                name="appID"
+                required
+                #appID="ngModel"
+                [pattern]="regex"
+              />
+              <div *ngIf="appID.errors">
+                <span
+                  class="block-help"
+                  *ngIf="appID.errors.required"
+                  style="color: red;"
+                  >Không được để trống trường này!</span
+                >
+                <span
+                class="block-help"
+                *ngIf="appID.errors.pattern"
                 style="color: red;"
                 >Không được dùng các ký tự đặc biệt</span
               >
@@ -216,7 +287,7 @@
                     class="btn btn-success mb-2 col-md-12"
                     [disabled]="
                       culture.invalid ||
-                      key.invalid ||
+                      name.invalid ||
                       value.invalid ||
                       form.pristine
                     "
@@ -231,7 +302,212 @@
                     (click)="onReset(edittingLanguage)"
                     [disabled]="
                       culture.invalid ||
-                      key.invalid ||
+                      name.invalid ||
+                      value.invalid ||
+                      form.pristine
+                    "
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            Thoát
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+<div>
+  <div
+    class="modal fade"
+    id="languageFormModal"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="ModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog" role="document">
+      <div class="modal-content" style="width: 120%; margin-left: -10%;">
+        <div class="modal-header">
+          <h5 class="modal-title" id="ModalLabel">
+            Chỉnh sửa
+          </h5>
+          <button
+            type="button"
+            class="close"
+            data-dismiss="modal"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <!-- Form CRUD -->
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6">
+              <span style="font-weight: bold;">Ngày cập nhật:</span> {{ getDate() | date: 'dd/MM/yyyy' }}
+            </div>
+            <div class="col-md-6">
+              <span style="font-weight: bold;">Người cập nhật:</span> {{ user.userName!=null ? user.userName : '' }}
+            </div>
+          </div>
+          <br>
+          <form #form="ngForm" (ngSubmit)="onSubmit()">
+            <div class="form-group">
+              <label for="cultureForm" class="col-form-label font-weight-bold"
+                >Culture</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="cultureForm"
+                ngModel
+                name="culture"
+                required
+                #culture="ngModel"
+                [pattern]="regex"
+                list="culture"
+                autocomplete="off"
+                disabled
+              />
+              <datalist id="culture">
+                <option *ngFor="let culture of languageService.listCulture" [value]="culture">{{ culture }}</option>
+              </datalist>
+              <div *ngIf="culture.errors">
+                <span
+                  class="block-help"
+                  *ngIf="culture.errors.required"
+                  style="color: red;"
+                  >Không được để trống trường này!</span
+                >
+                <span
+                class="block-help"
+                *ngIf="culture.errors.pattern"
+                style="color: red;"
+                >Không được dùng các ký tự đặc biệt</span
+              >
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="nameForm" class="col-form-label font-weight-bold"
+                >Name</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="nameForm"
+                ngModel
+                name="name"
+                required
+                #name="ngModel"
+                [pattern]="regex"
+                disabled
+              />
+              <div *ngIf="name.errors">
+                <span
+                  class="block-help"
+                  *ngIf="name.errors.required"
+                  style="color: red;"
+                  >Không được để trống trường này!</span
+                >
+                <span
+                class="block-help"
+                *ngIf="name.errors.pattern"
+                style="color: red;"
+                >Không được dùng các ký tự đặc biệt</span
+              >
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="appForm" class="col-form-label font-weight-bold"
+                >AppID</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="appForm"
+                ngModel
+                name="appID"
+                required
+                #appID="ngModel"
+                [pattern]="regex"
+                disabled
+              />
+              <div *ngIf="appID.errors">
+                <span
+                  class="block-help"
+                  *ngIf="appID.errors.required"
+                  style="color: red;"
+                  >Không được để trống trường này!</span
+                >
+                <span
+                class="block-help"
+                *ngIf="appID.errors.pattern"
+                style="color: red;"
+                >Không được dùng các ký tự đặc biệt</span
+              >
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="valueForm" class="col-form-label font-weight-bold"
+                >Value</label
+              >
+              <textarea
+                class="form-control"
+                id="valueForm"
+                ngModel
+                name="value"
+                required
+                #value="ngModel"
+                [pattern]="regex"
+              ></textarea>
+              <div *ngIf="value.errors">
+                <span
+                  class="block-help"
+                  *ngIf="value.errors.required"
+                  style="color: red;"
+                  >Không được để trống trường này!</span
+                >
+                <span
+                class="block-help"
+                *ngIf="value.errors.pattern"
+                style="color: red;"
+                >Không được dùng các ký tự đặc biệt</span
+              >
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="row">
+                <div class="col-md-6">
+                  <button
+                    type="submit"
+                    class="btn btn-success mb-2 col-md-12"
+                    [disabled]="
+                      culture.invalid ||
+                      name.invalid ||
+                      value.invalid ||
+                      form.pristine
+                    "
+                  >
+                    Lưu
+                  </button>
+                </div>
+                <div class="col-md-6">
+                  <button
+                    type="button"
+                    class="btn btn-info mb-2 col-md-12"
+                    (click)="onReset(edittingLanguage)"
+                    [disabled]="
+                      culture.invalid ||
+                      name.invalid ||
                       value.invalid ||
                       form.pristine
                     "

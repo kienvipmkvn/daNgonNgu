@@ -1,143 +1,54 @@
 import { Injectable } from '@angular/core';
-import { User } from '../models/user.model';
 import { LanguageObject } from '../models/language.model';
-import { Subject } from 'rxjs';
-import { AuthService } from './auth.service';
+import { Subject, BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LanguageService {
-  user: User;
-  languagesSubject: Subject<LanguageObject[]> = new Subject<LanguageObject[]>();
+  languagesSubject: BehaviorSubject<LanguageObject[]> = new BehaviorSubject<LanguageObject[]>(null);
   languages: LanguageObject[];
-  listCulture = ['vn', 'us'];
-  listCultureSubject: Subject<string[]> = new Subject<string[]>();
-  creatingLanguages: {language: LanguageObject, valid: boolean}[] = [];
-  dirty:boolean = false;
+  listCultureSubject: Subject<{languageTypeId: number, codeName: string}[]> = new Subject<{languageTypeId: number, codeName: string}[]>();
+  listAppTypeSubject: Subject<{appID: number, appName: string}[]> = new Subject<{appID: number, appName: string}[]>();
+  listCulture:{languageTypeId: number, codeName: string}[] = [];
+  listAppType: {appID: number, appName: string}[] = [];
+  creatingLanguages: {
+    languageTypeId: number,
+    name: string,
+    appID:number,
+    value: string
+  }[] = [];
+  editingIndex = -1;
+  totalItemsSubject: Subject<number> = new Subject<number>();
+  totalPagesSubject: Subject<number> = new Subject<number>();
+  serchKeySubject: Subject<string> = new Subject<string>();
+  totalItems: number;
+  totalPages: number;
+  searchKey: string;
+  isLoading = false;
 
-  constructor(private authService: AuthService) {
-    this.authService.user.subscribe((user)=>{
-      this.user = user;
-      this.languages = [
-        new LanguageObject(
-          '1',
-          'us',
-          'Sitetitle',
-          'Angular Multi Language Site',
-          new Date(),
-          this.user,
-          new Date(),
-          this.user
-        ),
-        new LanguageObject(
-          '2',
-          'us',
-          'Name',
-          'Name',
-          new Date(),
-          this.user,
-          new Date(),
-          this.user,
-        ),
-        new LanguageObject(
-          '3',
-          'us',
-          'NameError',
-          'I am sure you must have a name!',
-          new Date(),
-          this.user,
-          new Date(),
-          this.user,
-        ),
-        new LanguageObject(
-          '4',
-          'us',
-          'Email',
-          'Email address',
-          new Date(),
-          this.user,
-          new Date(),
-          this.user,
-        ),
-        new LanguageObject(
-          '5',
-          'us',
-          'PhoneNo',
-          'Phone No',
-          new Date(),
-          this.user,
-          new Date(),
-          this.user,
-        ),
-        new LanguageObject(
-          '6',
-          'vn',
-          'Sitetitle',
-          'Đa ngôn ngữ',
-          new Date(),
-          this.user,
-          new Date(),
-          this.user,
-        ),
-        new LanguageObject(
-          '7',
-          'vn',
-          'Name',
-          'Tên',
-          new Date(),
-          this.user,
-          new Date(),
-          this.user,
-        ),
-        new LanguageObject(
-          '8',
-          'vn',
-          'NameError',
-          'Tên không hợp lệ',
-          new Date(),
-          this.user,
-          new Date(),
-          this.user,
-        ),
-        new LanguageObject(
-          '9',
-          'vn',
-          'Email',
-          'Địa chỉ Email',
-          new Date(),
-          this.user,
-          new Date(),
-          this.user,
-        ),
-        new LanguageObject(
-          '10',
-          'vn',
-          'PhoneNo',
-          'Số điện thoại',
-          new Date(),
-          this.user,
-          new Date(),
-          this.user,
-        ),
-      ];
-      this.languagesSubject.next(this.languages);
+
+  constructor() {
+    this.languagesSubject.next(this.languages);
+    this.listCultureSubject.subscribe(cultures=>{
+      this.listCulture = cultures;
     })
-  }
+    
+    this.listAppTypeSubject.subscribe(appTypes=>{
+      this.listAppType = appTypes;
+    })
 
-  //lưu trữ và xử lý danh sách các culture
-  getListCulture(){
-    return this.listCulture.slice();
-  }
+    this.totalItemsSubject.subscribe(totalItems=>{
+      this.totalItems = totalItems;
+    })
 
-  setListCulture(listCulture){
-    this.listCulture = listCulture;
-    this.listCultureSubject.next(this.listCulture.slice());
-  }
+    this.totalPagesSubject.subscribe(totalPage=>{
+      this.totalPages = totalPage;
+    })
 
-  addListCulture(culture){
-    this.listCulture.push(culture);
-    this.listCultureSubject.next(this.listCulture.slice())
+    this.serchKeySubject.subscribe(serchKey=>{
+      this.searchKey = serchKey;
+    })
   }
 
 
@@ -147,6 +58,7 @@ export class LanguageService {
   }
 
   setCreatingLanguges(creatingLanguages){
+    console.log("Đang set creating");
     this.creatingLanguages = creatingLanguages;
   }
 
@@ -159,25 +71,22 @@ export class LanguageService {
   }
 
 
-  //lưu trữ và xử l
+  //lưu trữ và xử ly
   getLanguages() {
+    if(this.languages!=null)
     return this.languages.slice();
   }
 
-  getLanguage(i) {
-    return this.languages.slice()[i];
+  setTotalItems(total){
+    this.totalItemsSubject.next(total);
   }
 
-  // insertFirstLanguage(languageObj: LanguageObject){
-  //   let lgs = [languageObj];
-  //   lgs.push(...this.languages.slice())
-  //   this.languages = lgs;
-  //   this.languagesSubject.next(this.languages.slice());
-  // }
+  setTotalPages(total){
+    this.totalPagesSubject.next(total);
+  }
 
-  addLanguageObj(languageObj: LanguageObject){
-    this.languages.push(languageObj);
-    this.languagesSubject.next(this.languages.slice());
+  setSearchKey(searchKey){
+    this.serchKeySubject.next(searchKey);
   }
 
   addLanguageObjs(languageObjs:LanguageObject[]){
@@ -185,28 +94,17 @@ export class LanguageService {
     this.languagesSubject.next(this.languages.slice());
   }
 
-  updateLanguageObj(language: LanguageObject, id: string){
-    let index = this.getIndex(id);
-    this.languages[index] = language;
+  updateLanguageObj(language:{languageTypeId:number, name:string, appID: number, value:string, updatedUser:string}){
+    let index = this.editingIndex;
+    this.languages[index].languageTypeId = language.languageTypeId;
+    this.languages[index].name = language.name;
+    this.languages[index].value = language.value;
+    this.languages[index].updatedUser = language.updatedUser;
     this.languagesSubject.next(this.languages.slice());
   }
 
-  getIndex(id){
-    let index = this.languages.findIndex(data=>{
-      return data.id === id;
-    })
-    return index;
-  }
-
   setLanguages(languages){
-    this.languages = languages;
-    this.languagesSubject.next(languages);
-  }
-
-  checkIsConcident(lang: LanguageObject){
-    for (const language of this.languages) {
-      if(lang.culture.trim() == language.culture.trim() && lang.key.trim() == language.key.trim()) return true;
-    }
-    return false;
+    this.languages = languages.slice();
+    this.languagesSubject.next(languages.slice());
   }
 }

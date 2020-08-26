@@ -21,13 +21,14 @@ export class AuthService {
     return this.http
       .post<User>(environment.api.loginRoute,
         {
-          UserName: email,
-          Password: password,
-          AppType: 0
+          userName: email,
+          password: password,
+          appType: 0
         },
       ).pipe(
-        tap(resData => {
-          const user = new User(resData);
+        tap((resData:any) => {
+          console.log(resData);
+          const user = new User(resData.data);
           if (user.status === 1) {
             this.handleAuthentication(user, 3600);
           } else {

@@ -15,6 +15,7 @@ import { CreateNewComponent } from './grid-language/create-new/create-new.compon
 import { EditComponent } from './grid-language/edit/edit.component';
 import { TokenInterceptor } from './interceptor/token.interceptor';
 import { Router, ActivatedRoute } from '@angular/router';
+import { UserNamePipe } from './pipe/username.pipe';
 
 @NgModule({
   declarations: [
@@ -25,6 +26,7 @@ import { Router, ActivatedRoute } from '@angular/router';
     LoadingComponent,
     CreateNewComponent,
     EditComponent,
+    UserNamePipe,
   ],
   imports: [
     BrowserModule,
@@ -32,7 +34,7 @@ import { Router, ActivatedRoute } from '@angular/router';
     FormsModule,
     BrowserAnimationsModule,
     ToastrModule.forRoot({
-      timeOut: 2000,
+      timeOut: 10000,
       progressBar: true,
     }),
     HttpClientModule,
