@@ -89,13 +89,11 @@ export class EditComponent implements OnDestroy, OnInit {
   }
 
   onRowSelect(language: LanguageObject, i){
-    console.log(language);
     this.oldLanguage = new LanguageObject(language.languageTypeId, language.name, language.appID, language.value, language.created, language.createdUser, language.updated, language.updatedUser, language.isActive, language.version);
     this.setFormValue(language, i);
   }
 
   setFormValue(language: LanguageObject, i){
-    console.log(language);
     this.languageService.editingIndex = this.edittingIndex;
     this.edittingLanguage = language;
     this.edittingIndex = i;

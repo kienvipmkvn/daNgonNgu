@@ -25,10 +25,8 @@ export class LanguageStorageService{
 
     if(appId!=null && appId!=undefined)  params += "appId=" + appId + "&";
 
-    if(orderAsc==true)  params += "sort=";
-    else params+="sort=desc";
+    if(orderAsc==false)  params += "sort=desc";
 
-    console.log(environment.api.languageApi +"/" + pageIndex + "/" + pageSize + params);
     return this.http.get(environment.api.languageApi +"/" + pageIndex + "/" + pageSize + params)
       .pipe(map((data: any)=>{
         this.languageService.setTotalItems(data.data.value.totalItems);
