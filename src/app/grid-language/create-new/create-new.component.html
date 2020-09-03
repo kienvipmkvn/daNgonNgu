@@ -39,7 +39,7 @@
               #culture
               (change)="onInputChange(culture, i, 'culture')"
             >
-              <option *ngFor="let culture of languageService.listCulture" [value]="culture.languageTypeId">{{ culture.codeName }}</option>
+              <option [selected]="language.languageTypeId==culture.languageTypeId?true:null" *ngFor="let culture of languageService.listCulture" [value]="culture.languageTypeId">{{ culture.codeName }}</option>
             </select>
           </td>
           <td class="align-middle">
