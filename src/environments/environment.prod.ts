@@ -9,5 +9,5 @@ export const environment = {
     userApi:'http://192.168.1.48:9004/api/v1/language/user', // Link đến API ngôn ngữ
   },
   errorList: ["Cannot insert duplicate key in object"],
-  regex: /^[ .,:"'()!@#$%^&*`~+-?|{}a-zA-Z0-9-_ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêệễếềểìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ]+$/  
+  regex: /^[^<>]*$/  
 };
