@@ -78,7 +78,7 @@ export class CreateNewComponent implements OnInit{
   onAddLanguage(num){
     for (let i = 0; i < num; i++) {
       this.languages.push({
-        languageTypeId: 1,
+        languageTypeId: i%2?2:1,
         name: '',
         appID: 0,
         value: ''

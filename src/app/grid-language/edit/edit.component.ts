@@ -129,7 +129,9 @@ export class EditComponent implements OnDestroy, OnInit {
     return "Error";
   }
 
-  changePage(pageIndex: number){
+  changePage(e, pageIndex: number){
+    e.preventDefault();
+    e.stopPropagation();
     if(pageIndex>0 && pageIndex<=this.languageService.totalPages) {
       if(pageIndex!=this.currentPage){
         this.languageStorage.fetchLanguage(pageIndex, this.pageSize, this.orderAsc, this.languageService.searchKey, this.languageTypeId, this.appTypeId);
