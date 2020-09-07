@@ -47,10 +47,9 @@ export class EditComponent implements OnDestroy, OnInit {
     this.subscription.add(this.authService.user.subscribe((user) => {
       this.user = user;
     }));
+    this.languageStorage.fetchLanguage(1, this.pageSize, this.orderAsc);
     this.subscription.add(this.languageService.languagesSubject.subscribe((objs) => { 
       this.languages = objs;
-      if(this.languages == null || this.languages == undefined)
-        this.languageStorage.fetchLanguage(1, this.pageSize, this.orderAsc);
     }));
   }
 
