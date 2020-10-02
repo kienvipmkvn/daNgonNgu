@@ -29,10 +29,12 @@ export class AuthService {
         tap((resData:any) => {
           console.log(resData);
           const user = new User(resData.data);
-          if (user.status === 1) {
+          if (user.status === 1 && user.companyType === 1) {
             this.handleAuthentication(user, 3600);
           } else {
-            throw new Error(user.status + '');
+            if(user.status !==1 )
+              throw new Error(user.status + '');
+            else throw new Error('10');
           }
         }),
         catchError(this.handleError)
@@ -109,6 +111,9 @@ export class AuthService {
         break;
       case '5':
         errorMessage = 'Bạn đăng nhập trên thiết bị không phù hợp';
+        break;
+      case '10':
+        errorMessage = 'Không có quyền truy cập!';
         break;
     }
     return throwError(errorMessage);

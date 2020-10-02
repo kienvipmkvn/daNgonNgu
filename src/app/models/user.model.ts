@@ -20,6 +20,7 @@ export class User {
     public phoneNumber: string;
     public userType: number;
     public tokenExpirationDate: Date;
+    public partnerId: number;
     constructor(data: any) {
         this.status = +data[0];
         this.companyId = +data[1];
@@ -41,6 +42,7 @@ export class User {
         this.fullName = data[15];
         this.phoneNumber = data[16];
         this.userType = +data[17];
+        this.partnerId = +data[18];
     }
     get token() {
         if (!this.tokenExpirationDate || new Date() > this.tokenExpirationDate) {
