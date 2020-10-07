@@ -23,7 +23,8 @@ export class AuthService {
         {
           userName: email,
           password: password,
-          appType: 0
+          appType: 0,
+          clientType: 1
         },
       ).pipe(
         tap((resData:any) => {
