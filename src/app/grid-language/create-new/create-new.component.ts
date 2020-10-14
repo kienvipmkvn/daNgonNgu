@@ -219,43 +219,45 @@ export class CreateNewComponent implements OnInit{
       }
     });
 
-    console.log(validLanguages);
-    console.log(this.languages);
     this.languages = invalidLanguages;
     this.valid = [];
     for (let i = 0; i < invalidLanguages.length; i++) {
       this.valid.push(false);
     }
-    for (const validLanguage of validLanguages) {
-        //check trùng
-        console.log(validLanguage);
-        this.languageStorage.createLanguage({
-          languageTypeId: validLanguage.languageTypeId,
-          name: validLanguage.name,
-          appID: validLanguage.appID,
-          value: validLanguage.value,
-          createdUser: this.user.userId
-        }).subscribe((response:any)=>{
-          if(response.data.status == true){
-            this.toastr.success("Thêm mới thành công")
+    //check trùng
+    //100ms mỗi request
+    let i = 0;
+    const interval = setInterval(() => {
+      this.languageStorage.createLanguage({
+        languageTypeId: validLanguages[i].languageTypeId,
+        name: validLanguages[i].name,
+        appID: validLanguages[i].appID,
+        value: validLanguages[i].value,
+        createdUser: this.user.userId
+      }).subscribe((response:any)=>{
+        if(response.data.status == true){
+          this.toastr.success("Thêm mới thành công")
+        }
+        else{
+          let errorMsg = "Có lỗi xảy ra!";
+          console.log(errorMsg)
+          this.languages.unshift(validLanguages[i]);
+          this.valid.unshift(false);
+          const error:string = response.data.value.Message;
+          if(error.includes(this.errorMessageType[0])){
+            errorMsg = "Key đã tồn tại!"
           }
-          else{
-            let errorMsg = "Có lỗi xảy ra!";
-            this.languages.unshift(validLanguage);
-            this.valid.unshift(false);
-            const error:string = response.data.value.Message;
-            if(error.includes(this.errorMessageType[0])){
-              errorMsg = "Key đã tồn tại!"
-            }
-            this.toastr.error(`Thêm mới thất bại!\nLỗi: ${errorMsg}`);
-          }
-        }, error=>{
-          console.log(error);
-          this.languages.unshift(validLanguage);
-          this.valid.unshift(true);
-          this.toastr.error("Có lỗi xảy ra, không thể tạo mới!", "Lỗi")
-        })
-    }
+          this.toastr.error(`Thêm mới thất bại!\nLỗi: ${errorMsg}`);
+        }
+      }, error=>{
+        console.log(error);
+        this.languages.unshift(validLanguages[i]);
+        this.valid.unshift(true);
+        this.toastr.error("Có lỗi xảy ra, không thể tạo mới!", "Lỗi")
+      })
+      i++;
+      if(i==validLanguages.length) clearInterval(interval);
+    }, 100);
   }
 
   onClear(){
