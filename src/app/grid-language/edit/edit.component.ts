@@ -169,4 +169,21 @@ export class EditComponent implements OnDestroy, OnInit {
   onSortChange(){
     this.orderAsc = !this.orderAsc;
   }
+
+  copyText(val: string, e){
+    e.preventDefault();
+    e.stopPropagation();
+    let selBox = document.createElement('textarea');
+    selBox.style.position = 'fixed';
+    selBox.style.left = '0';
+    selBox.style.top = '0';
+    selBox.style.opacity = '0';
+    selBox.value = val;
+    document.body.appendChild(selBox);
+    selBox.focus();
+    selBox.select();
+    document.execCommand('copy');
+    document.body.removeChild(selBox);
+    this.toastr.info("Đã copy vào clipboard: " + val, "Thông báo");
+  }
 }

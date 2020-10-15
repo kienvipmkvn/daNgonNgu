@@ -49,7 +49,17 @@
       data-target="#languageFormModal"
     >
       <td class="align-middle">{{ getCulture(language.languageTypeId) }}</td>
-      <td class="align-middle">{{ language.name }}</td>
+      <td class="align-middle">
+        <span id="language-name" #languageName>{{ language.name }}</span>
+        <img 
+          src="../../../assets/download.png" 
+          alt="copy" 
+          height=16 
+          (click)="copyText(language.name, $event)"
+          class="float-right"
+          style="cursor: pointer;"
+        >
+      </td>
       <td class="align-middle">{{ getAppType(language.appID) }}</td>
       <td class="align-middle">{{ language.value }}</td>
       <td class="align-middle">
@@ -93,212 +103,6 @@
 <div *ngIf="languageService.totalItems>0">Tổng số: {{languageService.totalItems}}</div>
 
 <div *ngIf="languageService.totalItems==0 && !languageStorage.isLoading">Không có dữ liệu để hiển thị!</div>
-<!-- <div *ngIf="languageStorage.isLoading">
-  <app-loading></app-loading>
-</div><br> -->
-
-<!-- Modal -->
-<!-- <div>
-  <div
-    class="modal fade"
-    id="languageFormModal"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="ModalLabel"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog" role="document">
-      <div class="modal-content" style="width: 120%; margin-left: -10%;">
-        <div class="modal-header">
-          <h5 class="modal-title" id="ModalLabel">
-            Chỉnh sửa
-          </h5>
-          <button
-            type="button"
-            class="close"
-            data-dismiss="modal"
-            aria-label="Close"
-          >
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-md-6">
-              <span style="font-weight: bold;">Ngày cập nhật:</span> {{ getDate() | date: 'dd/MM/yyyy' }}
-            </div>
-            <div class="col-md-6">
-              <span style="font-weight: bold;">Người cập nhật:</span> {{ user.userName!=null ? user.userName : '' }}
-            </div>
-          </div>
-          <br>
-          <form #form="ngForm" (ngSubmit)="onSubmit()">
-            <div class="form-group">
-              <label for="cultureForm" class="col-form-label font-weight-bold"
-                >Culture</label
-              >
-              <input
-                type="text"
-                class="form-control"
-                id="cultureForm"
-                ngModel
-                name="culture"
-                required
-                #culture="ngModel"
-                [pattern]="regex"
-                (change)="onChange(culture)"
-                list="culture"
-                autocomplete="off"
-              />
-              <datalist id="culture">
-                <option *ngFor="let culture of listCulture" [value]="culture">{{ culture }}</option>
-              </datalist>
-              <div *ngIf="culture.errors">
-                <span
-                  class="block-help"
-                  *ngIf="culture.errors.required"
-                  style="color: red;"
-                  >Không được để trống trường này!</span
-                >
-                <span
-                class="block-help"
-                *ngIf="culture.errors.pattern"
-                style="color: red;"
-                >Không được dùng các ký tự đặc biệt</span
-              >
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="nameForm" class="col-form-label font-weight-bold"
-                >Name</label
-              >
-              <input
-                type="text"
-                class="form-control"
-                id="nameForm"
-                ngModel
-                name="name"
-                required
-                #name="ngModel"
-                [pattern]="regex"
-              />
-              <div *ngIf="name.errors">
-                <span
-                  class="block-help"
-                  *ngIf="name.errors.required"
-                  style="color: red;"
-                  >Không được để trống trường này!</span
-                >
-                <span
-                class="block-help"
-                *ngIf="name.errors.pattern"
-                style="color: red;"
-                >Không được dùng các ký tự đặc biệt</span
-              >
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="appForm" class="col-form-label font-weight-bold"
-                >AppID</label
-              >
-              <input
-                type="text"
-                class="form-control"
-                id="appForm"
-                ngModel
-                name="appID"
-                required
-                #appID="ngModel"
-                [pattern]="regex"
-              />
-              <div *ngIf="appID.errors">
-                <span
-                  class="block-help"
-                  *ngIf="appID.errors.required"
-                  style="color: red;"
-                  >Không được để trống trường này!</span
-                >
-                <span
-                class="block-help"
-                *ngIf="appID.errors.pattern"
-                style="color: red;"
-                >Không được dùng các ký tự đặc biệt</span
-              >
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="valueForm" class="col-form-label font-weight-bold"
-                >Value</label
-              >
-              <textarea
-                class="form-control"
-                id="valueForm"
-                ngModel
-                name="value"
-                required
-                #value="ngModel"
-                [pattern]="regex"
-              ></textarea>
-              <div *ngIf="value.errors">
-                <span
-                  class="block-help"
-                  *ngIf="value.errors.required"
-                  style="color: red;"
-                  >Không được để trống trường này!</span
-                >
-                <span
-                class="block-help"
-                *ngIf="value.errors.pattern"
-                style="color: red;"
-                >Không được dùng các ký tự đặc biệt</span
-              >
-              </div>
-            </div>
-            <div class="form-group">
-              <div class="row">
-                <div class="col-md-6">
-                  <button
-                    type="submit"
-                    class="btn btn-success mb-2 col-md-12"
-                    [disabled]="
-                      culture.invalid ||
-                      name.invalid ||
-                      value.invalid ||
-                      form.pristine
-                    "
-                  >
-                    Lưu
-                  </button>
-                </div>
-                <div class="col-md-6">
-                  <button
-                    type="button"
-                    class="btn btn-info mb-2 col-md-12"
-                    (click)="onReset(edittingLanguage)"
-                    [disabled]="
-                      culture.invalid ||
-                      name.invalid ||
-                      value.invalid ||
-                      form.pristine
-                    "
-                  >
-                    Reset
-                  </button>
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">
-            Thoát
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div> -->
 
 <div>
   <div
