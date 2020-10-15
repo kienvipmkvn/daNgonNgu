@@ -204,7 +204,7 @@ export class CreateNewComponent implements OnInit{
     this.onAddLanguage(10);
   }
 
-  onSave(){
+  async onSave(){
     //lưu lại các languge valid
     let validLanguages = [];
 
@@ -224,17 +224,18 @@ export class CreateNewComponent implements OnInit{
     for (let i = 0; i < invalidLanguages.length; i++) {
       this.valid.push(false);
     }
+
     //check trùng
-    //100ms mỗi request
-    let i = 0;
-    const interval = setInterval(() => {
-      this.languageStorage.createLanguage({
+    for (let i = 0; i < validLanguages.length; i++) {
+      await this.languageStorage.createLanguage({
         languageTypeId: validLanguages[i].languageTypeId,
         name: validLanguages[i].name,
         appID: validLanguages[i].appID,
         value: validLanguages[i].value,
         createdUser: this.user.userId
-      }).subscribe((response:any)=>{
+      })
+      .toPromise()
+      .then((response:any)=>{
         if(response.data.status == true){
           this.toastr.success("Thêm mới thành công")
         }
@@ -255,9 +256,7 @@ export class CreateNewComponent implements OnInit{
         this.valid.unshift(true);
         this.toastr.error("Có lỗi xảy ra, không thể tạo mới!", "Lỗi")
       })
-      i++;
-      if(i==validLanguages.length) clearInterval(interval);
-    }, 100);
+    }
   }
 
   onClear(){
